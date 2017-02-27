@@ -35,19 +35,24 @@ namespace ToDoListSql
       };
 
       Get["/tasks/new"] = _ => {
-        List<Category> AllCategories = Category.GetAll();
-        return View["tasks_form.cshtml", AllCategories];
+        return View["tasks_form.cshtml"];
       };
 
       Post["/tasks/new"] = _ => {
-        Task newTask = new Task(Request.Form["task-description"], Request.Form["category-id"], Request.Form["due-date"]);
+        Task newTask = new Task(Request.Form["task-description"], Request.Form["due-date"]);
         newTask.Save();
         return View["success.cshtml"];
       };
 
-      Post["/tasks/delete"] = _ => {
-        Task.DeleteAll();
-        return View["success.cshtml"];
+      Get["tasks/{id}"] = parameters => {
+        Dictionary<string, object> model = new Dictionary<string, object>();
+        Task SelectedTask = Task.Find(parameters.id);
+        List<Category> TaskCategories = SelectedTask.GetCategories();
+        List<Category> AllCategories = Category.GetAll();
+        model.Add("task", SelectedTask);
+        model.Add("taskCategories", TaskCategories);
+        model.Add("allCategories", AllCategories);
+        return View["task.cshtml", model];
       };
 
       Get["/categories/{id}"] = parameters => {
@@ -58,9 +63,27 @@ namespace ToDoListSql
         model.Add("tasks", CategoryTasks);
         return View["category.cshtml", model];
       };
+      //To Add A Category
+      Post["task/add_category"] = _ => {
+        Category category = Category.Find(Request.Form["category-id"]);
+        Task task = Task.Find(Request.Form["task-id"]);
+        task.AddCategory(category);
+        return View["success.cshtml"];
+      };
+      Post["category/add_task"] = _ => {
+        Category category = Category.Find(Request.Form["category-id"]);
+        Task task = Task.Find(Request.Form["task-id"]);
+        category.AddTask(task);
+        return View["success.cshtml"];
+      };
 
       Post["/categories/delete"] = _ => {
         Category.DeleteAll();
+        Task.DeleteAll();
+        return View["success.cshtml"];
+      };
+
+      Post["/tasks/delete"] = _ => {
         Task.DeleteAll();
         return View["success.cshtml"];
       };
