@@ -23,11 +23,7 @@ namespace ToDoListSql
       Assert.Equal(0,result);
     }
 
-    public void Dispose()
-    {
-      Task.DeleteAll();
-      Category.DeleteAll();
-    }
+
     [Fact]
     public void Test_Equal_ReturnsTrueForSameName()
     {
@@ -49,6 +45,14 @@ namespace ToDoListSql
       //Act
       List<Category> result = Category.GetAll();
       List<Category> testList = new List<Category>{testCategory};
+      foreach(Category category in result)
+      {
+        Console.WriteLine(category.GetName());
+      }
+     foreach(Category category in testList)
+      {
+        Console.WriteLine(category.GetName());
+      }
 
       //Assert
       Assert.Equal(testList, result);
@@ -90,17 +94,22 @@ namespace ToDoListSql
     {
       Category testCategory = new Category("Household chores");
       testCategory.Save();
+
       DateTime testDate = new DateTime(2017, 02, 21);
-      Task firstTask = new Task("Mow the lawn", testCategory.GetId(), testDate);
+
+      Task firstTask = new Task("Mow the lawn", testDate);
       firstTask.Save();
-      Task secondTask = new Task("Do the dishes", testCategory.GetId(), testDate);
+
+      Task secondTask = new Task("Do the dishes", testDate);
       secondTask.Save();
 
-      List<Task> testTaskList = new List<Task> {firstTask, secondTask};
+      testCategory.AddTask(firstTask);
+      List<Task> testTaskList = new List<Task> {firstTask};
       List<Task> resultTaskList = testCategory.GetTasks();
 
       Assert.Equal(testTaskList, resultTaskList);
     }
+
     [Fact]
     public void Test_GetTasks_OrdersAllTasksByDueDate()
     {
@@ -108,25 +117,54 @@ namespace ToDoListSql
       testCategory.Save();
       DateTime testDate = new DateTime(2017, 02, 21);
       DateTime testDate2 = new DateTime(2016, 02, 21);
-      Task firstTask = new Task("Mow the lawn", testCategory.GetId(), testDate);
+      Task firstTask = new Task("Mow the lawn", testDate);
       firstTask.Save();
-      Task secondTask = new Task("Do the dishes", testCategory.GetId(), testDate2);
+      Task secondTask = new Task("Do the dishes", testDate2);
       secondTask.Save();
 
-      List<Task> testTaskList = new List<Task> {secondTask, firstTask};
+      testCategory.AddTask(firstTask);
+      testCategory.AddTask(secondTask);
+      List<Task> testTaskList = new List<Task> {firstTask, secondTask};
       List<Task> resultTaskList = testCategory.GetTasks();
 
       // foreach (Task task in testTaskList)
       // {
       //   Console.WriteLine("TEST: " + task.GetDescription());
       // }
-      //
+
       // foreach (Task task in resultTaskList)
       // {
-      //   Console.WriteLine("ACTUAL: " + task.GetDescription());
+      //   Console.WriteLine("ACTUAL: " + task.GetTasks());
       // }
 
       Assert.Equal(testTaskList, resultTaskList);
+    }
+
+    [Fact]
+    public void Test_Delete_DeletesCategoryFromDatabase()
+    {
+      //Arrange
+      string name1 = "Home stuff";
+      Category testCategory1 = new Category(name1);
+      testCategory1.Save();
+
+      string name2 = "Work stuff";
+      Category testCategory2 = new Category(name2);
+      testCategory2.Save();
+
+      //Act
+      testCategory1.Delete();
+      List<Category> resultCategories = Category.GetAll();
+      List<Category> testCategoryList = new List<Category> {testCategory2};
+
+      //Assert
+      Assert.Equal(testCategoryList, resultCategories);
+    }
+
+    public void Dispose()
+    {
+      Task.DeleteAll();
+      Category.DeleteAll();
     }
   }
 }

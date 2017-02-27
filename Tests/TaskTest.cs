@@ -28,8 +28,8 @@ namespace ToDoListSql
       //Arrange, Act
       DateTime testDate = new DateTime(2017, 2, 21);
 
-      Task firstTask = new Task("Mow the lawn", 1, testDate);
-      Task secondTask = new Task("Mow the lawn", 1, testDate);
+      Task firstTask = new Task("Mow the lawn", testDate);
+      Task secondTask = new Task("Mow the lawn", testDate);
 
       //Assert
       Assert.Equal(firstTask, secondTask);
@@ -40,7 +40,7 @@ namespace ToDoListSql
       //Arrange
       DateTime testDate = new DateTime(2017, 2, 21);
 
-      Task testTask = new Task("Mow the lawn", 1, testDate);
+      Task testTask = new Task("Mow the lawn", testDate);
 
       //Act
       testTask.Save();
@@ -59,7 +59,7 @@ namespace ToDoListSql
     {
       //Arrange
       DateTime testDate = new DateTime(2017, 2, 21);
-      Task testTask = new Task("Mow the lawn", 1, testDate);
+      Task testTask = new Task("Mow the lawn", testDate);
 
       //Act
       testTask.Save();
@@ -76,7 +76,7 @@ namespace ToDoListSql
     {
       //Arrange
       DateTime testDate = new DateTime(2017, 2, 21);
-      Task testTask = new Task("Mow the lawn", 1, testDate);
+      Task testTask = new Task("Mow the lawn", testDate);
       testTask.Save();
 
       //Act
@@ -91,8 +91,8 @@ namespace ToDoListSql
     {
       //Arrange, Act
       DateTime testDate = new DateTime(2017, 2, 21);
-      Task firstTask = new Task("Mow the lawn", 1, testDate);
-      Task secondTask = new Task("Mow the lawn", 1, testDate);
+      Task firstTask = new Task("Mow the lawn", testDate);
+      Task secondTask = new Task("Mow the lawn", testDate);
 
       //Assert
       Assert.Equal(firstTask, secondTask);
@@ -103,9 +103,9 @@ namespace ToDoListSql
     {
       DateTime firstTestDate = new DateTime(2017, 02, 21);
       DateTime secondTestDate = new DateTime(2017, 02, 10);
-      Task firstTask = new Task("Mow the lawn", 1, firstTestDate);
+      Task firstTask = new Task("Mow the lawn", firstTestDate);
       firstTask.Save();
-      Task secondTask = new Task("Do the dishes", 1, secondTestDate);
+      Task secondTask = new Task("Do the dishes", secondTestDate);
       secondTask.Save();
 
       List<Task> testTaskList = new List<Task> {secondTask, firstTask};
@@ -123,5 +123,53 @@ namespace ToDoListSql
 
       Assert.Equal(testTaskList, resultTaskList);
     }
+
+    [Fact]
+    public void Test_AddCategory_AddsCategoryToTask()
+    {
+      //Arrange
+      DateTime testDate = new DateTime(2017, 02, 21);
+
+      Task testTask = new Task("Mow the lawn", testDate);
+      testTask.Save();
+
+      Category testCategory = new Category("Home stuff");
+
+      testCategory.Save();
+
+      //Act
+      testTask.AddCategory(testCategory);
+
+      List<Category> result = testTask.GetCategories();
+      List<Category> testList = new List<Category>{testCategory};
+
+      //Assert
+      Assert.Equal(testList, result);
+    }
+
+    [Fact]
+    public void Test_GetCategories_ReturnsAllTaskCategories()
+    {
+      //Arrange
+      DateTime testDate = new DateTime(2017, 02, 21);
+
+      Task testTask = new Task("Mow the lawn", testDate);
+      testTask.Save();
+
+      Category testCategory1 = new Category("Home stuff");
+      testCategory1.Save();
+
+      Category testCategory2 = new Category("Work stuff");
+      testCategory2.Save();
+
+      //Act
+      testTask.AddCategory(testCategory1);
+      List<Category> result = testTask.GetCategories();
+      List<Category> testList = new List<Category> {testCategory1};
+
+      //Assert
+      Assert.Equal(testList, result);
+    }
+
   }
 }

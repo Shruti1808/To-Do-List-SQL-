@@ -8,15 +8,13 @@ namespace ToDoListSql
   {
     private int _id;
     private string _description;
-    private int _categoryId;
     private DateTime _dueDate;
 
-    public Task(string Description, int categoryId, DateTime dueDate, int Id = 0)
+    public Task(string Description, DateTime dueDate, int Id = 0)
     {
       _id = Id;
       _description = Description;
       _dueDate = dueDate;
-      _categoryId = categoryId;
     }
 
     public override bool Equals(System.Object otherTask)
@@ -31,8 +29,7 @@ namespace ToDoListSql
         bool idEquality = (this.GetId() == newTask.GetId());
         bool descriptionEquality = (this.GetDescription() == newTask.GetDescription());
         bool dueDateEquality = (this.GetDueDate() == newTask.GetDueDate());
-        bool categoryEquality = (this.GetCategoryId() == newTask.GetCategoryId());
-        return (idEquality && descriptionEquality && categoryEquality && dueDateEquality);
+        return (idEquality && descriptionEquality && dueDateEquality);
       }
     }
 
@@ -53,17 +50,9 @@ namespace ToDoListSql
     {
       _description = newDescription;
     }
-    public int GetCategoryId()
-    {
-      return _categoryId;
-    }
     public DateTime GetDueDate()
     {
       return _dueDate.Date;
-    }
-    public void SetCategoryId(int newCategoryId)
-    {
-      _categoryId = newCategoryId;
     }
     public static List<Task> GetAll()
     {
@@ -79,9 +68,8 @@ namespace ToDoListSql
       {
         int taskId = rdr.GetInt32(0);
         string taskDescription = rdr.GetString(1);
-        int taskCategoryId = rdr.GetInt32(2);
-        DateTime taskDueDate = rdr.GetDateTime(3);
-        Task newTask = new Task(taskDescription, taskCategoryId, taskDueDate, taskId);
+        DateTime taskDueDate = rdr.GetDateTime(2);
+        Task newTask = new Task(taskDescription, taskDueDate, taskId);
         allTasks.Add(newTask);
       }
 
@@ -101,17 +89,13 @@ namespace ToDoListSql
       SqlConnection conn = DB.Connection();
       conn.Open();
 
-      SqlCommand cmd = new SqlCommand("INSERT INTO tasks (description, category_id, due_date) OUTPUT INSERTED.id VALUES (@TaskDescription, @TaskCategoryId, @TaskDueDate);", conn);
+      SqlCommand cmd = new SqlCommand("INSERT INTO tasks (description, due_date) OUTPUT INSERTED.id VALUES (@TaskDescription, @TaskDueDate);", conn);
 
       SqlParameter descriptionParameter = new SqlParameter();
       descriptionParameter.ParameterName = "@TaskDescription";
       descriptionParameter.Value = this.GetDescription();
       cmd.Parameters.Add(descriptionParameter);
 
-      SqlParameter categoryIdParameter = new SqlParameter();
-      categoryIdParameter.ParameterName = "@TaskCategoryId";
-      categoryIdParameter.Value = this.GetCategoryId();
-      cmd.Parameters.Add(categoryIdParameter);
 
       SqlParameter dueDateParameter = new SqlParameter();
       dueDateParameter.ParameterName = "@TaskDueDate";
@@ -164,17 +148,15 @@ namespace ToDoListSql
 
       int foundTaskId = 0;
       string foundTaskDescription = null;
-      int foundTaskCategoryId = 0;
       DateTime foundDueDate = new DateTime(1980, 01, 01);
 
       while(rdr.Read())
       {
         foundTaskId = rdr.GetInt32(0);
         foundTaskDescription = rdr.GetString(1);
-        foundTaskCategoryId = rdr.GetInt32(2);
-        foundDueDate = rdr.GetDateTime(3);
+        foundDueDate = rdr.GetDateTime(2);
       }
-      Task foundTask = new Task(foundTaskDescription, foundTaskCategoryId, foundDueDate, foundTaskId);
+      Task foundTask = new Task(foundTaskDescription, foundDueDate, foundTaskId);
 
       if (rdr != null)
       {
@@ -186,6 +168,88 @@ namespace ToDoListSql
       }
 
       return foundTask;
+    }
+
+    public void AddCategory(Category newCategory)
+    {
+      SqlConnection conn = DB.Connection();
+      conn.Open();
+
+      SqlCommand cmd = new SqlCommand("INSERT INTO categories_tasks (category_id, task_id) VALUES (@CategoryId, @TaskId);", conn);
+
+      SqlParameter categoryIdParameter = new SqlParameter();
+      categoryIdParameter.ParameterName = "@CategoryId";
+      categoryIdParameter.Value = newCategory.GetId();
+      cmd.Parameters.Add(categoryIdParameter);
+
+      SqlParameter taskIdParameter = new SqlParameter();
+      taskIdParameter.ParameterName = "@TaskId";
+      taskIdParameter.Value = this.GetId();
+      cmd.Parameters.Add(taskIdParameter);
+
+      cmd.ExecuteNonQuery();
+
+      if (conn != null)
+      {
+        conn.Close();
+      }
+    }
+
+    public List<Category> GetCategories()
+    {
+      SqlConnection conn = DB.Connection();
+      conn.Open();
+
+      SqlCommand cmd = new SqlCommand("SELECT category_id FROM categories_tasks WHERE task_id = @TaskId;", conn);
+
+      SqlParameter taskIdParameter = new SqlParameter();
+      taskIdParameter.ParameterName = "@TaskId";
+      taskIdParameter.Value = this.GetId();
+      cmd.Parameters.Add(taskIdParameter);
+
+      SqlDataReader rdr = cmd.ExecuteReader();
+
+      List<int> categoryIds = new List<int> {};
+
+      while (rdr.Read())
+      {
+        int categoryId = rdr.GetInt32(0);
+        categoryIds.Add(categoryId);
+      }
+      if (rdr != null)
+      {
+        rdr.Close();
+      }
+
+      List<Category> categories = new List<Category> {};
+
+      foreach (int categoryId in categoryIds)
+      {
+        SqlCommand categoryQuery = new SqlCommand("SELECT * FROM categories WHERE id = @CategoryId;", conn);
+
+        SqlParameter categoryIdParameter = new SqlParameter();
+        categoryIdParameter.ParameterName = "@CategoryId";
+        categoryIdParameter.Value = categoryId;
+        categoryQuery.Parameters.Add(categoryIdParameter);
+
+        SqlDataReader queryReader = categoryQuery.ExecuteReader();
+        while (queryReader.Read())
+        {
+          int thisCategoryId = queryReader.GetInt32(0);
+          string categoryName = queryReader.GetString(1);
+          Category foundCategory = new Category(categoryName, thisCategoryId);
+          categories.Add(foundCategory);
+        }
+        if (queryReader != null)
+        {
+          queryReader.Close();
+        }
+      }
+      if (conn != null)
+      {
+        conn.Close();
+      }
+      return categories;
     }
   }
 }
