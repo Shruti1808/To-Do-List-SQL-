@@ -47,11 +47,11 @@ namespace ToDoListSql
       List<Category> testList = new List<Category>{testCategory};
       foreach(Category category in result)
       {
-        Console.WriteLine(category.GetName());
+        Console.WriteLine("Result " + category.GetName());
       }
      foreach(Category category in testList)
       {
-        Console.WriteLine(category.GetName());
+        Console.WriteLine("Test " + category.GetName());
       }
 
       //Assert

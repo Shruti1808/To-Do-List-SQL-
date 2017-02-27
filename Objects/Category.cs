@@ -108,7 +108,7 @@ namespace ToDoListSql
     {
       SqlConnection conn = DB.Connection();
       conn.Open();
-      SqlCommand cmd = new SqlCommand("DELETE FROM categories;", conn);
+      SqlCommand cmd = new SqlCommand("DELETE FROM categories; DELETE FROM tasks;", conn);
       cmd.ExecuteNonQuery();
       conn.Close();
     }
@@ -118,7 +118,7 @@ namespace ToDoListSql
       SqlConnection conn = DB.Connection();
       conn.Open();
 
-      SqlCommand cmd = new SqlCommand("DELETE FROM categories WHERE id = @CategoryId; DELETE FROM categories_tasks where category_id = @CategoryId", conn);
+      SqlCommand cmd = new SqlCommand("DELETE FROM categories WHERE id = @CategoryId; DELETE FROM categories_tasks WHERE category_id = @CategoryId;", conn);
 
       SqlParameter categoryIdParameter = new SqlParameter();
       categoryIdParameter.ParameterName = "@CategoryId";

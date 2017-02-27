@@ -50,10 +50,7 @@ namespace ToDoListSql
       //Assert
       Assert.Equal(testList, result);
     }
-    public void Dispose()
-    {
-      Task.DeleteAll();
-    }
+
     [Fact]
     public void Test_Save_AssignsIdToObject()
     {
@@ -171,5 +168,33 @@ namespace ToDoListSql
       Assert.Equal(testList, result);
     }
 
+    [Fact]
+    public void Test_Delete_DeletesTaskAssociationsFromDatabase()
+    {
+      //Arrange
+      DateTime testDate = new DateTime(2017, 02, 21);
+
+      Category testCategory = new Category("Home stuff");
+      testCategory.Save();
+
+      string testDescription = "Mow the lawn";
+      Task testTask = new Task(testDescription, testDate);
+      testTask.Save();
+
+      //Act
+      testTask.AddCategory(testCategory);
+      testTask.Delete();
+
+      List<Task> resultCategoryTasks = testCategory.GetTasks();
+      List<Task> testCategoryTasks = new List<Task> {};
+
+      //Assert
+      Assert.Equal(testCategoryTasks, resultCategoryTasks);
+    }
+    public void Dispose()
+    {
+      Task.DeleteAll();
+      Category.DeleteAll();
+    }
   }
 }
